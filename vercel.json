@@ -19,9 +19,10 @@
   "buildCommand": "npm run build --prefix frontend",
   "outputDirectory": "frontend/dist",
   "functions": {
-    "backend/server.js": {
+    "backend/server.js": {  # <-- The pattern here is the path from project root
+      "src": "backend/server.js", # <-- Add src to point to the actual file
       "memory": 1024,
       "maxDuration": 10
     }
-  }
+}
 }

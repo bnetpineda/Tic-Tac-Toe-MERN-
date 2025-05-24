@@ -1,0 +1,39 @@
+{
+    "version": 2,
+    "projects": [
+      {
+        "name": "Tic-Tac-Toe-frontend",
+        "root": "frontend",
+        "build": {
+          "env": {
+            "VITE_API_BASE_URL": "@your_backend_api_url"
+          }
+        }
+      },
+      {
+        "name": "Tic-Tac-Toe-backend",
+        "root": "backend",
+        "outputDirectory": "build",
+        "build": {
+           "src": "src/index.js",
+           "use": "@vercel/node"
+        }
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "/api/(.*)",
+        "destination": "/backend/api/$1"
+      },
+      {
+        "source": "/(.*)",
+        "destination": "/frontend/$1"
+      }
+    ],
+     "env": {
+       "MONGO_URI": "@mongo_uri_secret"
+     },
+    "installCommand": "npm install --prefix frontend && npm install --prefix backend",
+    "buildCommand": "npm run build --prefix frontend"
+  }
+  

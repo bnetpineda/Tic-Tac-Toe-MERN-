@@ -1,0 +1,68 @@
+# Node.js
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# TypeScript build results
+dist/
+build/
+*.js.map
+*.d.ts
+
+# Optional caches
+.npm
+.eslintcache
+.stylelintcache
+.prettiercache
+.yarn/cache
+.pnp/
+.pnp.js
+.cache
+
+# Environment variables
+# It's crucial to ignore your .env file as it contains sensitive information.
+.env
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# VS Code
+.vscode/
+
+# Editor directories and files
+.idea/ # JetBrains IDEs (IntelliJ, WebStorm, etc.)
+*.iml # JetBrains IDEs module files
+.settings/ # Eclipse
+
+# Docker
+# Ignore Docker build context files
+.dockerignore
+
+# Compiled output
+*.o
+*.a
+
+# Package managers
+pnpm-lock.yaml # If you use pnpm
+
+# Other potential build outputs or temporary files
+tmp/
+
+# You might add other project-specific ignores here if needed
+# e.g. Uploaded files, database backups, etc.
+# /uploads/
+# /backups/

@@ -20,9 +20,6 @@
       "destination": "/frontend/dist/$1"
     }
   ],
-  "env": {
-    "MONGO_URI": "@mongo_uri_secret"
-  },
   "installCommand": "npm install --prefix frontend && npm install --prefix backend",
   "buildCommand": "npm run build --prefix frontend",
   "outputDirectory": "frontend/dist",

@@ -1,32 +1,14 @@
 {
-  "version": 2,
-  "cleanUrls": true,
-  "public": true,
-  "git": {
-    "deploymentEnabled": true
-  },
-  "build": {
-    "env": {
-      "VITE_API_BASE_URL": "@your_backend_api_url"
-    }
-  },
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/backend/server.js"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/frontend/dist/$1"
+      "destination": "/api"
     }
   ],
-  "installCommand": "npm install --prefix frontend && npm install --prefix backend",
-  "buildCommand": "npm run build --prefix frontend",
-  "outputDirectory": "frontend/dist",
-  "functions": {
-    "backend/server.js": {
-      "memory": 1024,
-      "maxDuration": 10
-    }
-  }
+  "builds": [
+      {
+          "src": "api/index.js",
+          "use": "@vercel/node"
+      }
+  ]
 }

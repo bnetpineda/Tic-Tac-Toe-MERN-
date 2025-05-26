@@ -10,5 +10,6 @@
           "src": "api/index.js",
           "use": "@vercel/node"
       }
-  ]
+  ],
+  "installCommand": "npm install --prefix ./backend && npm install --prefix ./frontend"
 }

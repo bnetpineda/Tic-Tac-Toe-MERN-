@@ -155,6 +155,7 @@ function Game() {
         const response = await fetch(endpoint, {
           method: "POST",
           headers: {
+            "ngrok-skip-browser-warning": "true",
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ winnerName }),

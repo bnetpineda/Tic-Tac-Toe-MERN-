@@ -3,7 +3,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 // Ensure API_BASE_URL is defined using Vite's import.meta.env
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
 
 function Home() {
   const [isStartModalOpen, setIsStartModalOpen] = useState(false);
@@ -43,7 +44,13 @@ function Home() {
     setHistoryError(null);
     const endpoint = `${API_BASE_URL}/api/show-winner`;
     try {
-      const response = await fetch(endpoint);
+      const response = await fetch(endpoint, {
+        method: "GET",
+        headers: {
+          "ngrok-skip-browser-warning": "true",
+          "Content-Type": "application/json",
+        },
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

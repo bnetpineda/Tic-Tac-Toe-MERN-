@@ -47,6 +47,7 @@ function findWinningLineIndices(squares) {
     const [a, b, c] = lines[i];
     if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
       return lines[i]; // Return the array of indices [a, b, c]
+      console.log(lines);
     }
   }
   return null;
@@ -148,8 +149,31 @@ function Game() {
 
   const recordWin = useCallback(
     async (winnerName) => {
+      const currentWins = parseInt(localStorage.getItem(winnerName)) || 0;
+      localStorage.setItem(winnerName, currentWins + 1);
+      const recordedHistory =
+        JSON.parse(localStorage.getItem("recordedHistory")) || [];
+
+      const recordedWin = {
+        winnerName,
+        squares,
+        playerX,
+        playerO,
+        timestamp: new Date().toISOString(),
+      };
+
+      recordedHistory.push(recordedWin);
+      
+      localStorage.setItem("recordedHistory", JSON.stringify(recordedHistory));
+
+      const testHistory = localStorage.getItem("recordedHistory");
+      console.log("Recorded History:", testHistory);
+
       if (!winnerName || winnerName === "Player 1" || winnerName === "Player 2")
         return; // Do not record wins for default names
+      // Offline storage for the win record
+
+      console.log("Recording win for:", recordedWin);
       const endpoint = `${API_BASE_URL}/api/record-win`;
       try {
         const response = await fetch(endpoint, {
@@ -158,13 +182,13 @@ function Game() {
             "ngrok-skip-browser-warning": "true",
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ winnerName }),
+          body: JSON.stringify({ winnerName, squares, playerX, playerO }),
         });
-
         const data = await response.json();
 
+        console.log("Response from server:", data);
+        console.log(data.player.name);
         if (response.ok) {
-          console.log("Win recorded:", data.player);
           if (data.player.name === player1Name) {
             setPlayer1Wins(data.player.wins);
           } else if (data.player.name === player2Name) {
@@ -177,7 +201,7 @@ function Game() {
         console.error("Network error:", error);
       }
     },
-    [player1Name, player2Name, setPlayer1Wins, setPlayer2Wins] // Removed API_BASE_URL as dependency, it's a constant
+    [player1Name, player2Name, setPlayer1Wins, setPlayer2Wins, squares]
   );
 
   useEffect(() => {

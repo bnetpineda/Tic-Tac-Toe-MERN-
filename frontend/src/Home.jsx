@@ -8,21 +8,33 @@ const API_BASE_URL =
 
 function Home() {
   const [isStartModalOpen, setIsStartModalOpen] = useState(false);
+  const [isLeaderboardModalOpen, setIsLeaderboardModalOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
-  const [historyData, setHistoryData] = useState([]);
+
+  const [isHistoryError, setIsHistoryError] = useState(null);
+  const [isHistoryData, setIsHistoryData] = useState([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-  const [historyError, setHistoryError] = useState(null);
+
+  const [isLeaderboardData, setIsLeaderboardData] = useState([]);
+  const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState(false);
+  const [isLeaderboardError, setIsLeaderboardError] = useState(null);
 
   const [player1Name, setPlayer1Name] = useState("");
   const [player2Name, setPlayer2Name] = useState("");
   const navigate = useNavigate();
+
+  const isInvalidNames =
+    player1Name.length > 20 ||
+    player2Name.length > 20 ||
+    player1Name === player2Name ||
+    !player1Name ||
+    !player2Name;
 
   const handleStart = () => {
     if (player1Name && player2Name) {
       const gameUrl = `/game?player1Name=${encodeURIComponent(
         player1Name
       )}&player2Name=${encodeURIComponent(player2Name)}`;
-
       navigate(gameUrl);
       setIsStartModalOpen(false);
     } else {
@@ -38,10 +50,13 @@ function Home() {
     setIsStartModalOpen(false);
   };
 
-  const handleOpenHistoryModal = async () => {
-    setIsHistoryModalOpen(true);
-    setIsLoadingHistory(true);
-    setHistoryError(null);
+  const handleOpenLeaderboardModal = async () => {
+    setIsLeaderboardModalOpen(true);
+    setIsLoadingLeaderboard(true);
+    setIsLeaderboardError(null);
+    let localStorageData = localStorage.getItem("recordedHistory");
+    localStorageData = localStorageData ? JSON.parse(localStorageData) : [];
+
     const endpoint = `${API_BASE_URL}/api/show-winner`;
     try {
       const response = await fetch(endpoint, {
@@ -56,19 +71,59 @@ function Home() {
       }
       const data = await response.json();
       const sortedData = data.sort((a, b) => b.wins - a.wins);
-      setHistoryData(sortedData);
+      console.log("Fetched leaderboard data:", sortedData);
+      setIsLeaderboardData(sortedData);
     } catch (error) {
       console.error("Error fetching player history:", error);
-      setHistoryError("Failed to load history. Please try again later.");
-      setHistoryData([]);
+      // setIsLeaderboardError("Failed to load history. Please try again later.");
+      setIsLeaderboardData(localStorageData);
+      console.log("Using local storage data:", localStorageData);
+    } finally {
+      setIsLoadingLeaderboard(false);
+      console.log("Leaderboard data loaded:", isLeaderboardData);
+    }
+  };
+  const handleOpenHistoryModal = async (playerName) => {
+    setIsLeaderboardModalOpen(false);
+    setIsHistoryModalOpen(true);
+    setIsLoadingHistory(true);
+    setIsHistoryError(null);
+    // Pass playerName as a query param
+    const endpoint = `${API_BASE_URL}/api/history?playerName=${encodeURIComponent(
+      playerName
+    )}`;
+    try {
+      const response = await fetch(endpoint, {
+        method: "GET",
+        headers: {
+          "ngrok-skip-browser-warning": "true",
+          "Content-Type": "application/json",
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setIsHistoryData(data ? [data] : []);
+      
+    } catch (error) {
+      console.error("Error fetching player history:", error);
+      setIsHistoryError("Failed to load history. Please try again later.");
+      setIsHistoryData([]);
     } finally {
       setIsLoadingHistory(false);
+      console.log("History data loaded:", isHistoryData);  
     }
   };
 
+  const handleCloseLeaderboardModal = () => {
+    setIsLeaderboardModalOpen(false);
+    setIsLeaderboardError(null);
+  };
   const handleCloseHistoryModal = () => {
     setIsHistoryModalOpen(false);
-    setHistoryError(null);
+    setIsHistoryError(null);
+    console.log("History modal closed");
   };
 
   return (
@@ -128,7 +183,7 @@ function Home() {
             focus:ring-opacity-50
             w-64 sm:w-auto
           "
-          onClick={handleOpenHistoryModal}
+          onClick={handleOpenLeaderboardModal}
         >
           Show History
         </button>
@@ -186,6 +241,7 @@ function Home() {
                 <button
                   className="bg-pink-600 text-white py-3 px-8 rounded-md hover:bg-pink-700 font-pixelify text-lg sm:text-xl transition-colors duration-300 [box-shadow:0_0_8px_theme(colors.pink.600)]"
                   onClick={handleStart}
+                  disabled={isInvalidNames}
                 >
                   Start Game
                 </button>
@@ -194,7 +250,68 @@ function Home() {
           </div>
         )}
 
-        {/* History Modal */}
+        {/* Leaderboard Modal */}
+        {isLeaderboardModalOpen && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 z-50 p-4">
+            <div className="bg-gray-800 rounded-lg p-6 shadow-lg max-w-md w-full relative text-white border-2 border-pink-600 [box-shadow:0_0_15px_theme(colors.pink.600),_0_0_30px_theme(colors.pink.700)]">
+              <button
+                className="absolute top-3 right-3 text-gray-400 hover:text-pink-500 text-2xl font-bold"
+                onClick={handleCloseLeaderboardModal}
+                aria-label="Close modal"
+              >
+                &times;
+              </button>
+              <h2 className="text-2xl sm:text-3xl font-pixelify mb-6 text-center text-pink-500 [text-shadow:_0_0_5px_theme(colors.pink.600)]">
+                Player History
+              </h2>
+              {isLoadingLeaderboard && (
+                <p className="text-center font-pixelify text-pink-400">
+                  Loading history...
+                </p>
+              )}
+              {isLeaderboardError && (
+                <p className="text-center font-pixelify text-red-500">
+                  {isLeaderboardError}
+                </p>
+              )}
+              {!isLoadingLeaderboard && !isLeaderboardError && (
+                <>
+                  {isLeaderboardData.length === 0 ? (
+                    <p className="text-center font-pixelify text-gray-400">
+                      No game history found.
+                    </p>
+                  ) : (
+                    <div className="space-y-3 max-h-80 overflow-y-auto pr-4 w-full max-w-md">
+                      {isLeaderboardData.map((player, index) => (
+                        <button
+                          key={player._id || index}
+                          className="w-full flex justify-between items-center p-3 bg-gray-700 rounded-md border border-gray-600"
+                          onClick={() => handleOpenHistoryModal(player.name)}
+                        >
+                          <span className="font-pixelify text-lg text-pink-400">
+                            {index + 1}. {player.name}
+                          </span>
+                          <span className="font-pixelify text-lg text-white">
+                            Wins: {player.wins}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+              <div className="flex justify-center mt-6">
+                <button
+                  className="bg-pink-600 text-white py-2 px-6 rounded-md hover:bg-pink-700 font-pixelify text-base sm:text-lg transition-colors duration-300 [box-shadow:0_0_8px_theme(colors.pink.600)]"
+                  onClick={handleCloseLeaderboardModal}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {isHistoryModalOpen && (
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 z-50 p-4">
             <div className="bg-gray-800 rounded-lg p-6 shadow-lg max-w-md w-full relative text-white border-2 border-pink-600 [box-shadow:0_0_15px_theme(colors.pink.600),_0_0_30px_theme(colors.pink.700)]">
@@ -213,33 +330,60 @@ function Home() {
                   Loading history...
                 </p>
               )}
-              {historyError && (
+              {isHistoryError && (
                 <p className="text-center font-pixelify text-red-500">
-                  {historyError}
+                  {isHistoryError}
                 </p>
               )}
-              {!isLoadingHistory && !historyError && (
+              {!isLoadingHistory && !isHistoryError && (
                 <>
-                  {historyData.length === 0 ? (
+                
+                  {isHistoryData.length === 0 ? (
                     <p className="text-center font-pixelify text-gray-400">
                       No game history found.
                     </p>
                   ) : (
-                    <ul className="space-y-3 max-h-80 overflow-y-auto pr-2">
-                      {historyData.map((player, index) => (
-                        <li
-                          key={player._id || index} // Use player._id if available from MongoDB
-                          className="flex justify-between items-center p-3 bg-gray-700 rounded-md border border-gray-600"
+                    <div className="space-y-3 max-h-80 overflow-y-auto pr-4 w-full max-w-md">
+                      {isHistoryData.map((game, index) => (
+                        <div
+                          key={game._id || index}
+                          className="w-full flex flex-col gap-2 p-3 bg-gray-700 rounded-md border border-gray-600 mb-2"
                         >
-                          <span className="font-pixelify text-lg text-pink-400">
-                            {index + 1}. {player.name}
-                          </span>
-                          <span className="font-pixelify text-lg text-white">
-                            Wins: {player.wins}
-                          </span>
-                        </li>
+                          <div className="flex justify-between items-center">
+                            <span className="font-pixelify text-lg text-pink-400">
+                              Game #{index + 1}
+                            </span>
+                            <span className="font-pixelify text-lg text-white">
+                              Winner: {game.winnerName}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="font-pixelify text-base text-gray-300">
+                              Player X: {game.playerX}
+                            </span>
+                            <span className="font-pixelify text-base text-gray-300">
+                              Player O: {game.playerO}
+                            </span>
+                          </div>
+                          <div className="font-pixelify text-sm text-gray-400">
+                            Played at: {new Date(game.timestamp).toLocaleString()}
+                          </div>
+                          <div className="mt-2">
+                            <span className="font-pixelify text-xs text-pink-300">Board:</span>
+                            <div className="grid grid-cols-3 gap-1 mt-1 w-28">
+                              {game.game.map((cell, i) => (
+                                <div
+                                  key={i}
+                                  className="w-8 h-8 flex items-center justify-center border border-pink-400 rounded bg-gray-800 text-xl text-white"
+                                >
+                                  {cell || ""}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   )}
                 </>
               )}

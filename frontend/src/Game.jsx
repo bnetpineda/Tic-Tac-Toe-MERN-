@@ -149,21 +149,36 @@ function Game() {
 
   const recordWin = useCallback(
     async (winnerName) => {
-      const currentWins = parseInt(localStorage.getItem(winnerName)) || 0;
-      localStorage.setItem(winnerName, currentWins + 1);
+
       const recordedHistory =
         JSON.parse(localStorage.getItem("recordedHistory")) || [];
+      
+      const recordedLeaderboard = JSON.parse(localStorage.getItem("recordedLeaderboard")) || [];
 
-      const recordedWin = {
+      const player = recordedLeaderboard.find(p => p.name === winnerName)
+
+      if (player){
+        player.wins++;
+        console.log(player.wins)
+      
+      }else{
+        let recordPlayer = {
+          name: winnerName,
+          wins: 1
+        }
+        recordedLeaderboard.push(recordPlayer);
+      }
+
+      const recordHistory = {
         winnerName,
-        squares,
+        game: squares,
         playerX,
         playerO,
         timestamp: new Date().toISOString(),
       };
 
-      recordedHistory.push(recordedWin);
-      
+      recordedHistory.push(recordHistory);
+      localStorage.setItem("recordedLeaderboard", JSON.stringify(recordedLeaderboard))
       localStorage.setItem("recordedHistory", JSON.stringify(recordedHistory));
 
       const testHistory = localStorage.getItem("recordedHistory");
@@ -173,7 +188,6 @@ function Game() {
         return; // Do not record wins for default names
       // Offline storage for the win record
 
-      console.log("Recording win for:", recordedWin);
       const endpoint = `${API_BASE_URL}/api/record-win`;
       try {
         const response = await fetch(endpoint, {

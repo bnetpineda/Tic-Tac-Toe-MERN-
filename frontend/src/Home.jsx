@@ -54,8 +54,10 @@ function Home() {
     setIsLeaderboardModalOpen(true);
     setIsLoadingLeaderboard(true);
     setIsLeaderboardError(null);
-    let localStorageData = localStorage.getItem("recordedHistory");
-    localStorageData = localStorageData ? JSON.parse(localStorageData) : [];
+    let localStorageDataLeaderboard= localStorage.getItem("recordedLeaderboard");
+    
+    localStorageDataLeaderboard = localStorageDataLeaderboard ? JSON.parse(localStorageDataLeaderboard) : [];
+
 
     const endpoint = `${API_BASE_URL}/api/show-winner`;
     try {
@@ -76,8 +78,8 @@ function Home() {
     } catch (error) {
       console.error("Error fetching player history:", error);
       // setIsLeaderboardError("Failed to load history. Please try again later.");
-      setIsLeaderboardData(localStorageData);
-      console.log("Using local storage data:", localStorageData);
+      setIsLeaderboardData(localStorageDataLeaderboard);
+      console.log("Using local storage data:", localStorageDataLeaderboard);
     } finally {
       setIsLoadingLeaderboard(false);
       console.log("Leaderboard data loaded:", isLeaderboardData);
@@ -89,6 +91,9 @@ function Home() {
     setIsLoadingHistory(true);
     setIsHistoryError(null);
     // Pass playerName as a query param
+    let localStorageDataHistory= localStorage.getItem("recordedHistory");
+    localStorageDataHistory= localStorageDataHistory ? JSON.parse(localStorageDataHistory) : [];
+    console.log(localStorageDataHistory);
     const endpoint = `${API_BASE_URL}/api/history?playerName=${encodeURIComponent(
       playerName
     )}`;
@@ -105,11 +110,13 @@ function Home() {
       }
       const data = await response.json();
       setIsHistoryData(data ? [data] : []);
+      console.log(isHistoryData);
       
     } catch (error) {
       console.error("Error fetching player history:", error);
-      setIsHistoryError("Failed to load history. Please try again later.");
-      setIsHistoryData([]);
+      // setIsHistoryError("Failed to load history. Please try again later.");
+      setIsHistoryData(localStorageDataHistory);
+      console.log(isHistoryData);
     } finally {
       setIsLoadingHistory(false);
       console.log("History data loaded:", isHistoryData);  
